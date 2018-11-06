@@ -68,9 +68,10 @@ class App(Tk):
             poids = response
             print('m :' + poids[0] + '-unité :' + poids[1])
             print('convert: ' + self.combo.get())
+            print(convertmasse(unitmasse,poids[0],poids[1],self.combo.get()))
             self.label2["text"] = 'm :' + poids[0] + '-unité :' + poids[1]
             #Utilisation de pyautogui pour copier les valeurs automatiquement
-            #pyautogui.typewrite('m :' + poids[0] + '-unité :' + poids[1])
+            pyautogui.typewrite(str(convertmasse(unitmasse,poids[0],poids[1],self.combo.get()))+'\n')
 
 
     def play(self):
@@ -96,18 +97,18 @@ class App(Tk):
 
 
 def convertmasse(dictunit, valeur, unit_in, unit_out):
-    return valeur*dictunit[unit_in]/dictunit[unit_out]
+    return float(valeur)*dictunit[unit_in]/dictunit[unit_out]
 
 
 if __name__ == '__main__':
 
-    # ser = serial.Serial(port='/dev/ttyUSB0',
-    #                     baudrate=9600,
-    #                     parity=serial.PARITY_NONE,
-    #                     stopbits=serial.STOPBITS_ONE,
-    #                     bytesize=serial.EIGHTBITS,
-    #                     timeout=1
-    #                     )
+    ser = serial.Serial(port='/dev/ttyUSB0',
+                        baudrate=9600,
+                        parity=serial.PARITY_NONE,
+                        stopbits=serial.STOPBITS_ONE,
+                        bytesize=serial.EIGHTBITS,
+                        timeout=1
+                        )
 
     #Définition du dict pour convertir les unitées et de la list
     unitmasse = {'kg': 1000, 'hg': 100, 'dag': 10, 'g': 1, 'dg': 0.1,
