@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import serial
+import sys
+import glob
 import pyautogui
 from threading import Thread
 from time import sleep
