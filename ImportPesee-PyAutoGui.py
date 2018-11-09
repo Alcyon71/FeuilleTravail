@@ -6,10 +6,7 @@ from time import sleep
 from Tkinter import Button, Label, Tk
 import ttk
 
-
-
 #TODO : Ajouter choix du port com par liste déroulante. Ou dans un fichier de config?
-#TODO : Choix de l'unité ( menu deroulant ) et transformation du poids en conséquence
 
 
 class App(Tk):
@@ -17,28 +14,32 @@ class App(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.title('Récupération des pesées')
-        self.geometry("300x120")
+        self.geometry("300x160")
         self.label = Label(self, text="Stopper.")
         self.label.pack()
         self.label2 = Label(self, text="")
         self.label2.pack()
         self.convert = Label(self,text="Choix de l'unité de masse :")
         self.convert.pack()
-        self.combo = ttk.Combobox(self, values=listunit, state="readonly",
-                                  height=4)
+        self.combo = ttk.Combobox(self, values=listunit, state="readonly", height=4)
         self.combo.set('g')
-        self.combo.bind("<<ComboboxSelected>>", self.test)
+        self.combo.bind("<<ComboboxSelected>>")
         self.combo.pack()
+        self.labelSerie = Label(self, text="Choix du port série :")
+        self.labelSerie.pack()
+        self.comboSerie = ttk.Combobox(self, values="", state="readonly", height=4)
+        self.comboSerie.bind("<<ComboboxSelected>>")
+        self.comboSerie.pack()
         self.play_button = Button(self, text="Play", command=self.play)
         self.play_button.pack(side='bottom',padx=2, pady=2)
         #self.stop_button = Button(self, text="Stop", command=self.stop)
         #self.stop_button.pack(side="left", padx=2, pady=2)
         self._thread, self._stop = None, True
 
-    def test(self, event):
-        #print(self.combo.get())
-        #print(event)
-        self.label2["text"] = 'convert: ' + self.combo.get()
+    # def test(self, event):
+    #     #print(self.combo.get())
+    #     #print(event)
+    #     self.label2["text"] = 'convert: ' + self.combo.get()
 
     def action(self):  
         while True:
@@ -100,15 +101,44 @@ def convertmasse(dictunit, valeur, unit_in, unit_out):
     return float(valeur)*dictunit[unit_in]/dictunit[unit_out]
 
 
+def serial_ports():
+    """ Lists serial port names
+
+        :raises EnvironmentError:
+            On unsupported or unknown platforms
+        :returns:
+            A list of the serial ports available on the system
+    """
+    if sys.platform.startswith('win'):
+        ports = ['COM%s' % (i + 1) for i in range(256)]
+    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        # this excludes your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+    elif sys.platform.startswith('darwin'):
+        ports = glob.glob('/dev/tty.*')
+    else:
+        raise EnvironmentError('Unsupported platform')
+
+    result = []
+    for port in ports:
+        try:
+            s = serial.Serial(port)
+            s.close()
+            result.append(port)
+        except (OSError, serial.SerialException):
+            pass
+    return result
+
+
 if __name__ == '__main__':
 
-    ser = serial.Serial(port='/dev/ttyUSB0',
-                        baudrate=9600,
-                        parity=serial.PARITY_NONE,
-                        stopbits=serial.STOPBITS_ONE,
-                        bytesize=serial.EIGHTBITS,
-                        timeout=1
-                        )
+    # ser = serial.Serial(port='/dev/ttyUSB0',
+    #                     baudrate=9600,
+    #                     parity=serial.PARITY_NONE,
+    #                     stopbits=serial.STOPBITS_ONE,
+    #                     bytesize=serial.EIGHTBITS,
+    #                     timeout=1
+    #                     )
 
     #Définition du dict pour convertir les unitées et de la list
     unitmasse = {'kg': 1000, 'hg': 100, 'dag': 10, 'g': 1, 'dg': 0.1,
