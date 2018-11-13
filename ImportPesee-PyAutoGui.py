@@ -7,8 +7,9 @@ from threading import Thread
 from time import sleep
 from Tkinter import Button, Label, Tk
 import ttk
+import tkMessageBox
 
-#TODO : Ajouter choix du port com par liste déroulante. Ou dans un fichier de config?
+#TODO : Vérifier que la balance est bien une mettler? voir dans metler_toledo_device?
 
 
 class App(Tk):
@@ -29,7 +30,7 @@ class App(Tk):
         self.combo.pack()
         self.labelSerie = Label(self, text="Choix du port série :")
         self.labelSerie.pack()
-        self.comboSerie = ttk.Combobox(self, values="", state="readonly", height=4)
+        self.comboSerie = ttk.Combobox(self, values=listportserie, state="readonly", height=4)
         self.comboSerie.bind("<<ComboboxSelected>>")
         self.comboSerie.pack()
         self.play_button = Button(self, text="Play", command=self.play)
@@ -38,12 +39,14 @@ class App(Tk):
         #self.stop_button.pack(side="left", padx=2, pady=2)
         self._thread, self._stop = None, True
 
-    # def test(self, event):
-    #     #print(self.combo.get())
-    #     #print(event)
-    #     self.label2["text"] = 'convert: ' + self.combo.get()
-
-    def action(self):  
+    def action(self):
+        ser = serial.Serial(port=self.comboSerie.get(),
+                            baudrate=9600,
+                            parity=serial.PARITY_NONE,
+                            stopbits=serial.STOPBITS_ONE,
+                            bytesize=serial.EIGHTBITS,
+                            timeout=1
+                            )
         while True:
             if not ser.isOpen():
                 ser.open()
@@ -74,21 +77,20 @@ class App(Tk):
             print(convertmasse(unitmasse,poids[0],poids[1],self.combo.get()))
             self.label2["text"] = 'm :' + poids[0] + '-unité :' + poids[1]
             #Utilisation de pyautogui pour copier les valeurs automatiquement
-            pyautogui.typewrite(str(convertmasse(unitmasse,poids[0],poids[1],self.combo.get()))+'\n')
+            pyautogui.typewrite(str(convertmasse(unitmasse,poids[0],poids[1], self.combo.get()))+'\n')
 
 
     def play(self):
-        if self._thread is None:
-            self._stop = False
-            self._thread = Thread(target=self.action)
-            self._thread.start()
-        #self._pause = False
-        self.play_button.configure(text="Stop", command=self.stop)
-        self.label["text"] = "En attente de poids..."
-
-    #def pause(self):
-    #    self._pause = True
-    #    self.play_button.configure(text="Play", command=self.play)
+        if not self.comboSerie.get():
+            tkMessageBox.showinfo("Port série!", "Vous devez choisir le port série de la balance!")
+        else:
+            if self._thread is None:
+                self._stop = False
+                self._thread = Thread(target=self.action)
+                self._thread.start()
+            #self._pause = False
+            self.play_button.configure(text="Stop", command=self.stop)
+            self.label["text"] = "En attente de poids..."
 
     def stop(self):
         if self._thread is not None:
@@ -134,18 +136,16 @@ def serial_ports():
 
 if __name__ == '__main__':
 
-    # ser = serial.Serial(port='/dev/ttyUSB0',
-    #                     baudrate=9600,
-    #                     parity=serial.PARITY_NONE,
-    #                     stopbits=serial.STOPBITS_ONE,
-    #                     bytesize=serial.EIGHTBITS,
-    #                     timeout=1
-    #                     )
-
-    #Définition du dict pour convertir les unitées et de la list
-    unitmasse = {'kg': 1000, 'hg': 100, 'dag': 10, 'g': 1, 'dg': 0.1,
-                 'cg': 0.01, 'mg': 0.001, 'dmg': 0.0001, 'µg': 0.000001}
-    listunit = [key for key, value in sorted(unitmasse.iteritems(), key=lambda (k, v): (v, k), reverse=True)]
+    #Vérification du port série
+    listportserie = serial_ports()
+    if not listportserie:
+        tkMessageBox.showerror("Erreur!", "Pas de port com sur ce PC!")
+        sys.exit()
+    else:
+        #Définition du dict pour convertir les unitées et de la list
+        unitmasse = {'kg': 1000, 'hg': 100, 'dag': 10, 'g': 1, 'dg': 0.1,
+                     'cg': 0.01, 'mg': 0.001, 'dmg': 0.0001, 'µg': 0.000001}
+        listunit = [key for key, value in sorted(unitmasse.iteritems(), key=lambda (k, v): (v, k), reverse=True)]
 
 
-    App().mainloop()
+        App().mainloop()
