@@ -77,7 +77,8 @@ class App(Tk):
             print(convertmasse(unitmasse,poids[0],poids[1],self.combo.get()))
             self.label2["text"] = 'm :' + poids[0] + '-unité :' + poids[1]
             #Utilisation de pyautogui pour copier les valeurs automatiquement
-            pyautogui.typewrite(str(convertmasse(unitmasse,poids[0],poids[1], self.combo.get()))+'\n')
+            pyautogui.typewrite(
+                '{0}\n'.format(str(convertmasse(unitmasse, poids[0], poids[1], self.combo.get())).replace(".", ",")))
 
 
     def play(self):
